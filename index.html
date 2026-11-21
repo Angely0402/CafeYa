@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaféYa - Tu café express sin filas</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- FontAwesome para iconos modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Contenedor de Notificaciones Push Flotantes -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- VISTA 1: AUTENTICACIÓN (LOGIN / REGISTRO) -->
+    <section id="auth-view" class="view active-view">
+        <div class="auth-container">
+            <div class="brand-header">
+                <i class="fa-solid fa-mug-hot logo-icon"></i>
+                <h1>CaféYa</h1>
+                <p>Tu café favorito, listo para recoger sin filas.</p>
+            </div>
+
+            <!-- Pestañas -->
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+                <button class="tab-btn" onclick="switchAuthTab('signup')">Registrarse</button>
+            </div>
+
+            <!-- Formulario Login -->
+            <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-envelope"></i> Correo electrónico</label>
+                    <input type="email" id="login-email" required placeholder="ejemplo@correo.com">
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <div class="form-actions-right">
+                    <a href="#" onclick="showForgotPassword(event)">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button type="submit" class="btn-primary">Entrar a CaféYa</button>
+            </form>
+
+            <!-- Formulario Registro -->
+            <form id="signup-form" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-user"></i> Nombre completo</label>
+                    <input type="text" id="signup-name" required placeholder="Tu nombre">
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-envelope"></i> Correo electrónico</label>
+                    <input type="email" id="signup-email" required placeholder="ejemplo@correo.com">
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                    <input type="password" id="signup-password" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn-primary">Crear Cuenta</button>
+            </form>
+
+            <!-- Acceso Rápido / Biometría -->
+            <div class="social-login">
+                <p>O continúa con acceso rápido</p>
+                <div class="social-buttons">
+                    <button class="btn-social google" onclick="quickLogin('Google')"><i class="fa-brands fa-google"></i> Google</button>
+                    <button class="btn-social biometric" onclick="quickLogin('Biometría')"><i class="fa-solid fa-fingerprint"></i> Huella / FaceID</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISTA 2: MENÚ PRINCIPAL -->
+    <section id="menu-view" class="view">
+        <header class="app-header">
+            <div class="user-greeting">
+                <span id="welcome-user-name">Hola, Amante del Café</span>
+                <p><i class="fa-solid fa-location-dot"></i> Tienda Zona T, Bogotá</p>
+            </div>
+            <button class="cart-badge-btn" onclick="navigateTo('cart-view')">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cart-counter" class="badge">0</span>
+            </button>
+        </header>
+
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" placeholder="Busca tu espresso, cappuccino..." oninput="filterMenu()">
+        </div>
+
+        <div class="categories-scroll">
+            <button class="cat-pill active" onclick="filterCategory('all', this)">Todos</button>
+            <button class="cat-pill" onclick="filterCategory('calientes', this)">Cafés Calientes</button>
+            <button class="cat-pill" onclick="filterCategory('frios', this)">Bebidas Frías</button>
+            <button class="cat-pill" onclick="filterCategory('pasteleria', this)">Acompañamientos</button>
+        </div>
+
+        <div class="menu-grid" id="menu-items-container">
+            <!-- Inyectado dinámicamente desde JavaScript -->
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="navigateTo('menu-view')"><i class="fa-solid fa-house"><span>Menú</span></i></button>
+            <button class="nav-item" onclick="navigateTo('cart-view')"><i class="fa-solid fa-receipt"><span>Pedido</span></i></button>
+            <button class="nav-item" onclick="logout()"><i class="fa-solid fa-right-from-bracket"><span>Salir</span></i></button>
+        </nav>
+    </section>
+
+    <!-- VISTA 3: DETALLE DE PRODUCTO -->
+    <section id="product-detail-view" class="view">
+        <button class="back-btn" onclick="navigateTo('menu-view')"><i class="fa-solid fa-arrow-left"></i> Volver al Menú</button>
+        
+        <div class="product-detail-card" id="detail-card-content">
+            <!-- Inyectado dinámicamente -->
+        </div>
+    </section>
+
+    <!-- VISTA 4: CARRITO / CHECKOUT -->
+    <section id="cart-view" class="view">
+        <button class="back-btn" onclick="navigateTo('menu-view')"><i class="fa-solid fa-arrow-left"></i> Seguir Comprando</button>
+        
+        <div class="cart-container">
+            <h2>Tu Pedido para Recoger</h2>
+            <div id="cart-items-list" class="cart-items-list">
+                <!-- Inyectado dinámicamente -->
+            </div>
+
+            <div class="pickup-time-selector">
+                <label><i class="fa-solid fa-clock"></i> Hora estimada de recogida:</label>
+                <select id="pickup-time">
+                    <option value="10 min">Lo antes posible (~10 min)</option>
+                    <option value="20 min">En 20 minutos</option>
+                    <option value="30 min">En 30 minutos</option>
+                </select>
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">$0</span></div>
+                <div class="summary-row"><span>Tarifa de servicio express</span><span>$0</span></div>
+                <div class="summary-row total"><span>Total a Pagar</span><span id="cart-total">$0</span></div>
+            </div>
+
+            <button class="btn-primary" onclick="navigateTo('payment-view')">Proceder al Pago</button>
+        </div>
+    </section>
+
+    <!-- VISTA 5: MÉTODOS DE PAGO -->
+    <section id="payment-view" class="view">
+        <button class="back-btn" onclick="navigateTo('cart-view')"><i class="fa-solid fa-arrow-left"></i> Volver al Carrito</button>
+        
+        <div class="payment-container">
+            <h2>Selecciona Método de Pago</h2>
+            
+            <div class="payment-methods-grid">
+                <label class="payment-method-card active">
+                    <input type="radio" name="payment" value="Nequi" checked onclick="selectPaymentMethod('Nequi')">
+                    <div class="method-info">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span>Nequi / Davplata</span>
+                    </div>
+                </label>
+
+                <label class="payment-method-card">
+                    <input type="radio" name="payment" value="PSE" onclick="selectPaymentMethod('PSE')">
+                    <div class="method-info">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>PSE (Débito Bancario)</span>
+                    </div>
+                </label>
+
+                <label class="payment-method-card">
+                    <input type="radio" name="payment" value="Tarjeta" onclick="selectPaymentMethod('Tarjeta')">
+                    <div class="method-info">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>Tarjeta Crédito / Débito</span>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Formularios Dinámicos de Pago -->
+            <div id="payment-form-dynamic" class="payment-dynamic-form">
+                <!-- Se llena con JS según selección -->
+            </div>
+
+            <button class="btn-primary" onclick="processPayment()">Pagar y Enviar Pedido</button>
+        </div>
+    </section>
+
+    <!-- VISTA 6: ESTADO DEL PEDIDO Y TEMPORIZADOR -->
+    <section id="status-view" class="view">
+        <div class="status-container">
+            <div class="success-icon-wrapper">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2>¡Pedido Confirmado!</h2>
+            <p>Tu orden ya fue recibida por nuestros baristas en tienda.</p>
+
+            <div class="timer-box">
+                <span class="timer-label">Tiempo estimado para recoger</span>
+                <h1 id="countdown-timer">08:00</h1>
+                <p id="order-status-text" class="status-badge preparing">En preparación</p>
+            </div>
+
+            <div class="order-store-info">
+                <h3><i class="fa-solid fa-store"></i> CaféYa - Sede Zona T</h3>
+                <p>Cra. 13 #82-34, Bogotá</p>
+                <p class="pickup-code-tag">Código de recogida: <strong>#CY-4820</strong></p>
+            </div>
+
+            <button class="btn-secondary" onclick="resetApp()">Pedir Otro Café</button>
+        </div>
+    </section>
+
+    <!-- Modal Recuperar Contraseña -->
+    <div id="forgot-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeForgotPassword()">&times;</span>
+            <h3>Recuperar Contraseña</h3>
+            <p>Ingresa tu correo electrónico registrado y te enviaremos las instrucciones.</p>
+            <input type="email" id="recovery-email" placeholder="correo@ejemplo.com">
+            <button class="btn-primary" onclick="sendRecoveryEmail()">Enviar enlace</button>
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script src="app.js"></script>
+</body>
+</html>
